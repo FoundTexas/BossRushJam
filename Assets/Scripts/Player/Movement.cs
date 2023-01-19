@@ -6,24 +6,28 @@ public class Movement : MonoBehaviour
 {
     [SerializeField] float jumpforce, walljumpforce, speed, holdMultiplier, stamina;
     [SerializeField] LayerMask Ground;
-    static public bool canJump, canWallJump;
+    bool canJump, canWallJump, canFlash;
     float jumpcooldown = 0, holdtime = 0, curStamina;
     Vector2 mov;
     Rigidbody2D rb;
-
     SpriteRenderer sr;
 
     void Start()
     {
-        curStamina = stamina;
         rb = GetComponent<Rigidbody2D>();
+        sr = GetComponent<SpriteRenderer>();
+        sr.color = Color.gray;
+        canFlash = true;
+    }
+
+    void Update()
+    {
+        canJump = Physics2D.Raycast(transform.position, transform.up * -1, 0.7f, Ground);
+        canWallJump = Physics2D.Raycast(transform.position, transform.right, 0.6f, Ground);
     }
 
     void LateUpdate()
     {
-        canJump = Physics2D.Raycast(transform.position, transform.up * -1, 1, Ground);
-        canWallJump = Physics2D.Raycast(transform.position, transform.right, 0.6f, Ground);
-
         mov = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
 
         if (mov.x != 0 && jumpcooldown <= 0)
@@ -32,15 +36,32 @@ public class Movement : MonoBehaviour
             rb.velocity = new Vector2(canWallJump ? 0 : mov.x * (canJump ? speed : speed / 2), rb.velocity.y);
         }
 
-        rb.isKinematic = (mov.x != 0 && canWallJump && !canJump && curStamina > 0);
+        rb.isKinematic = (mov.x != 0 && canWallJump && !canJump && stamina > 0);
 
-        if (canWallJump && curStamina > 0)
+        if(!rb.isKinematic && stamina <= 0f && canFlash)
         {
-            curStamina -= Time.deltaTime;
+            canFlash = false;
+            StartCoroutine(flashColor(Color.red, 0.4f));
+        }
+
+        if (canWallJump && stamina > 0 && mov.x != 0)
+        {
+            if (!canJump)
+                stamina -= Time.deltaTime;
+
             rb.velocity = new Vector2(rb.velocity.x, mov.y * speed * 0.75f);
         }
-        else if (curStamina <= stamina && canJump)
-            curStamina += Time.deltaTime;
+        else if (stamina < 0.75f && (canJump || !canWallJump))
+        {
+            StartCoroutine(flashColor(Color.green, 0.6f));
+            stamina = 0.75f;
+        }
+
+        if (holdtime > 0.25f && canFlash)
+        {
+            canFlash = false;
+            StartCoroutine(flashColor(Color.yellow, 0.5f));
+        }
 
         if (Input.GetKeyUp("space") && holdtime > 0.5f)
             Jump(holdMultiplier);
@@ -54,8 +75,34 @@ public class Movement : MonoBehaviour
             jumpcooldown -= Time.deltaTime;
     }
 
+    IEnumerator flashColor(Color color, float time)
+    {
+        float elapsedTime = 0;
+        while (elapsedTime < time / 2)
+        {
+            sr.color = Vector4.Lerp(Color.gray, color, (elapsedTime / time));
+            elapsedTime += Time.deltaTime;
+
+            yield return null;
+        }
+        sr.color = color;
+        while (elapsedTime < time)
+        {
+            sr.color = Vector4.Lerp(color, Color.gray, (elapsedTime / time));
+            elapsedTime += Time.deltaTime;
+
+            yield return null;
+        }
+        sr.color = Color.gray;
+        canFlash = true;
+        yield return null;
+    }
+
     void Jump(float multi)
     {
+        canFlash = true;
+        StopAllCoroutines();
+        sr.color = Color.gray;
         holdtime = 0;
 
         if (canJump)
