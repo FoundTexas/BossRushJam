@@ -22,8 +22,11 @@ public class Player : MonoBehaviour, IDamage
         rb.AddForce(dir * force * (1 - (curhp / hp)), ForceMode2D.Impulse);
     }
 
-    public void Hit(Vector2 dir, float force = 0)
+    public void Hit(Vector2 dir, float force = 0, int team = 0)
     {
+        if(this.team == team)
+            return;
+
         curhp--;
 
         KockBack(dir, force);

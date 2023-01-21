@@ -10,5 +10,5 @@ public interface IDamage
       set;
    }
 
-    public void Hit(Vector2 dir, float force = 0);
+    public void Hit(Vector2 dir, float force = 0, int team = 0);
 }

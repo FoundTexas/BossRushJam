@@ -8,12 +8,12 @@ public class PhysicsObj : MonoBehaviour, IDamage
 {
     [SerializeField] int hp = 1, npcTeam = -1;
     [SerializeField] float breakForce = 100, magnitude;
-    [SerializeField] bool inmortal = false;
+    public bool inmortal = false;
     int curhp = 1;
     Rigidbody2D rb;
 
 
-    void Start()
+    void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         curhp = hp;
@@ -25,13 +25,24 @@ public class PhysicsObj : MonoBehaviour, IDamage
 
     public Rigidbody2D GetRigidbody2D() { return rb; }
     public int GetHP() { return curhp; }
-    public int GetTeam() { return this.team; }
+
+    public void TakeDamage(Vector2 dir, float force = 0)
+    {
+        Debug.Log("Damage:" + dir*force);
+        if (!inmortal)
+            curhp--;
+
+        KockBack(dir, force);
+
+        if (curhp <= 0)
+            Destroy(gameObject);
+    }
 
     public void KockBack(Vector2 dir, float force)
     {
         rb.isKinematic = false;
         rb.velocity = Vector2.zero;
-        rb.AddForce(dir * force * (1 - (curhp / hp)), ForceMode2D.Impulse);
+        rb.AddForce(dir * force * (inmortal? 1 :(1 - (curhp / hp))), ForceMode2D.Impulse);
     }
 
     public int team
@@ -40,14 +51,11 @@ public class PhysicsObj : MonoBehaviour, IDamage
         set{ npcTeam = value;}
     }
 
-    public void Hit(Vector2 dir, float force = 0)
+    public virtual void Hit(Vector2 dir, float force = 0, int team = -1)
     {
-        if (!inmortal)
-            curhp--;
+        if(this.team == team)
+            return;
 
-        KockBack(dir, force);
-
-        if (curhp <= 0)
-            Destroy(gameObject);
+        TakeDamage(dir, force);
     }
 }
