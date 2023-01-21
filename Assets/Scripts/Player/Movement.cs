@@ -6,7 +6,7 @@ public class Movement : MonoBehaviour
 {
     [SerializeField] float jumpforce, walljumpforce, speed, holdMultiplier, stamina;
     [SerializeField] LayerMask Ground;
-    bool canJump, canWallJump, canFlash;
+    public static bool canJump, canWallJump, canFlash;
     float jumpcooldown = 0, holdtime = 0, curStamina, curSpeed;
     Vector2 mov;
     Rigidbody2D rb;
@@ -20,6 +20,7 @@ public class Movement : MonoBehaviour
         sr = GetComponent<SpriteRenderer>();
         hsr = transform.GetChild(0).GetComponent<SpriteRenderer>();
         canFlash = true;
+        curStamina = stamina;
     }
 
     void Update()
@@ -45,31 +46,32 @@ public class Movement : MonoBehaviour
             rb.velocity = new Vector2(canWallJump ? 0 : mov.x * curSpeed, rb.velocity.y);
         }
 
-        rb.isKinematic = (mov.x != 0 && canWallJump && !canJump && stamina > 0);
+        rb.isKinematic = (mov.x != 0 && canWallJump && !canJump && curStamina > 0);
 
-        if (!rb.isKinematic && stamina <= 0f && canFlash)
+        if (!rb.isKinematic && curStamina <= 0f && canFlash)
         {
             canFlash = false;
             StartCoroutine(flashColor(Color.red, 0.4f));
         }
-
-        if (canWallJump && stamina > 0 && mov.x != 0)
-        {
-            if (!canJump)
-                stamina -= Time.deltaTime;
-
-            rb.velocity = new Vector2(rb.velocity.x, mov.y * curSpeed * 0.75f);
-        }
-        else if (stamina < 0.75f && (canJump || !canWallJump))
-        {
-            StartCoroutine(flashColor(Color.green, 0.6f));
-            stamina = 0.75f;
-        }
-        else if (holdtime > 0.25f && canFlash)
+        if (holdtime > 0.25f && canFlash)
         {
             canFlash = false;
             StartCoroutine(flashColor(Color.yellow, 0.5f));
         }
+
+        if (canWallJump && curStamina > 0 && mov.x != 0)
+        {
+            if (!canJump && mov.y != 0)
+                curStamina -= Time.deltaTime;
+
+            rb.velocity = new Vector2(rb.velocity.x, mov.y * curSpeed * 0.75f);
+        }
+        else if (curStamina < 0.75f && (canJump || !canWallJump))
+        {
+            StartCoroutine(flashColor(Color.green, 0.6f));
+            curStamina = stamina;
+        }
+        
 
         if (Input.GetKeyUp("space") && holdtime > 0.5f)
             Jump(holdMultiplier);

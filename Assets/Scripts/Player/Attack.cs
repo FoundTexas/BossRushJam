@@ -19,9 +19,7 @@ public class Attack : MonoBehaviour
     void Update()
     {
         Vector2 newVect = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
-
-        if(newVect != Vector2.zero)
-            dir = newVect;
+        dir = newVect;
 
         if (Input.GetKey("k"))
         {
@@ -46,7 +44,7 @@ public class Attack : MonoBehaviour
             draggingTime = 0;
             dragging = false;
             if (drag)
-                drag = drag.ThrowObj(dir, team);
+                drag = drag.ThrowObj(Movement.canWallJump? new Vector2(dir.x*-1, dir.y):dir, team);
         }
         else if (Input.GetKeyDown("l"))
         {
