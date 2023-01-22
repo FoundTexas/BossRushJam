@@ -46,6 +46,9 @@ public class Movement : MonoBehaviour
             rb.velocity = new Vector2(canWallJump ? 0 : mov.x * curSpeed, rb.velocity.y);
         }
 
+        if(mov.x != 0 && canWallJump)
+            rb.velocity = new Vector2(0 , rb.velocity.y);
+
         rb.isKinematic = (mov.x != 0 && canWallJump && !canJump && curStamina > 0);
 
         if (!rb.isKinematic && curStamina <= 0f && canFlash)
@@ -115,6 +118,7 @@ public class Movement : MonoBehaviour
 
     void Jump(float multi)
     {
+        rb.isKinematic = false;
         canFlash = true;
         StopAllCoroutines();
         sr.color = Color.white;
