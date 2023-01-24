@@ -448,7 +448,7 @@ CircleCollider2D:
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
   serializedVersion: 2
-  m_Radius: 2
+  m_Radius: 1.25
 --- !u!212 &3170760257830953576
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -515,6 +515,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   hp: 1
   stages: 1
+  bossHitPoint: {fileID: 2984524734378176044, guid: 325902ed75fe5e54190dd62b93e42106, type: 3}
   webs:
   - {fileID: 6127604555573631973}
   - {fileID: 1071397425}
